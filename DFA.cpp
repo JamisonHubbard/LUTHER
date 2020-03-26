@@ -1,29 +1,26 @@
-// This is just for the debug logging in DFA::fromFile
-//#include <iostream> // std::cout
 #include <ostream>  // std::ostream
 #include <iomanip>  // std::setw, std::left
 
 #include "DFA.h"
 #include "util.h"
 
-using std::shared_ptr;
-using std::make_shared;
 using std::string;
 using std::ifstream;
 using std::ostream;
 using std::vector;
 using std::map;
+using std::optional;
 
-shared_ptr<DFA> DFA::fromFile(shared_ptr<Sigma> sigma, const char* fname) {
+optional<DFA> DFA::fromFile(const Sigma &sigma, const char* fname) {
 	ifstream file(fname, ifstream::in);
 
 	if (!file.good()) {
-		return nullptr;
+		return std::nullopt;
 	}
 
-	shared_ptr<DFA> dfa = make_shared<DFA>();
-	dfa->name = string(fname);
-	dfa->sigma = sigma;
+	DFA dfa;
+	dfa.name = string(fname);
+	dfa.sigma = sigma;
 
 	string line;
 	bool readValidInput = false;
@@ -34,7 +31,7 @@ shared_ptr<DFA> DFA::fromFile(shared_ptr<Sigma> sigma, const char* fname) {
 
 		// We need exactly sizeof(sigma)+2 items in the split
 		// <accepting> <state number> <transitions...>
-		if (split.size() != 2 + sigma->size()) continue;
+		if (split.size() != 2 + sigma.size()) continue;
 
 		readValidInput = true;
 
@@ -43,7 +40,7 @@ shared_ptr<DFA> DFA::fromFile(shared_ptr<Sigma> sigma, const char* fname) {
 
 		// Is the state accepting or not?
 		bool accept = split[0] == "+";
-		dfa->accepting[fromState] = accept;
+		dfa.accepting[fromState] = accept;
 
 		// Go through this row, we start at 2 to skip
 		// both the +/- at the beginning and also the
@@ -54,7 +51,7 @@ shared_ptr<DFA> DFA::fromFile(shared_ptr<Sigma> sigma, const char* fname) {
 				size_t toState = std::stoi(split[i]);
 
 				// Add the transition
-				dfa->transitionTable[fromState][sigmaIdx] = toState;
+				dfa.transitionTable[fromState][sigmaIdx] = toState;
 			}
 		}
 	}
@@ -65,7 +62,7 @@ shared_ptr<DFA> DFA::fromFile(shared_ptr<Sigma> sigma, const char* fname) {
 		return dfa;
 	}
 	else {
-		return nullptr;
+		return std::nullopt;
 	}
 }
 
@@ -73,16 +70,16 @@ size_t DFA::numRows() const {
 	return transitionTable.size();
 }
 
-state_t DFA::getState() const {
+DFA::state_t DFA::getState() const {
 	return this->state;
 }
 
-state_t DFA::transition(char inputChar) {
+DFA::state_t DFA::transition(char inputChar) {
 	// TODO
 	// This function performs a transition on this DFA, and changes its current state.
 	// This function is incomplete and needs to do bookkeeping about the last match
 	// and its position in the program source.
-	size_t inputIdx = sigma->indexToChar(inputChar);
+	size_t inputIdx = sigma.indexToChar(inputChar);
 
 	map<size_t, statenum_t> transitionRow = transitionTable[stateNum];
 
@@ -116,7 +113,7 @@ ostream& operator<<(ostream& out, const DFA& dfa) {
 
 	// Print sigma
 	out << string(colWidth * 2, ' '); // two empty columns
-	for (char c : *dfa.sigma) {
+	for (char c : dfa.sigma) {
 		out << std::left << setw(colWidth) << Sigma::print(c);
 	}
 	out << "\n";
@@ -124,14 +121,14 @@ ostream& operator<<(ostream& out, const DFA& dfa) {
 	auto ttable = dfa.transitionTable;
 	for (auto entry : ttable) {
 		size_t stateNum = entry.first;
-		map<size_t, statenum_t> transitions = entry.second;
+		map<size_t, DFA::statenum_t> transitions = entry.second;
 
 		// Print accepting state and state number
 		out << setw(colWidth) << (dfa.accepting.at(stateNum) ? "+" : "-");
 		out << setw(colWidth) << stateNum;
 
 		// Print transitions
-		for (size_t i = 0; i < dfa.sigma->size(); i++) {
+		for (size_t i = 0; i < dfa.sigma.size(); i++) {
 			if (transitions.find(i) != transitions.end()) {
 				out << setw(colWidth) << transitions[i];
 			}
@@ -146,11 +143,4 @@ ostream& operator<<(ostream& out, const DFA& dfa) {
 	out.flags(flags);
 
 	return out;
-}
-
-ostream& operator<<(ostream& out, const shared_ptr<DFA>& dfa) {
-	if (dfa == nullptr) {
-		return out << "<null dfa>";
-	}
-	return out << *dfa;
 }

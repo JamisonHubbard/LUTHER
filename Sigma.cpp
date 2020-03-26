@@ -1,6 +1,4 @@
 #include <string>     // std::string
-#include <memory>     // std::shared_ptr, std::make_shared
-#include <functional> // std::function
 #include <iomanip>    // std::hex, std::setw, std::setw
 #include <sstream>    // std::stringstream
 
@@ -9,20 +7,17 @@
 
 using std::string;
 using std::set;
-using std::shared_ptr;
-using std::make_shared;
 using std::ostream;
-using std::function;
 
-shared_ptr<Sigma> Sigma::fromString(string line) {
-	shared_ptr<Sigma> sigma = make_shared<Sigma>();
+Sigma Sigma::fromString(string line) {
+	Sigma sigma;
 
 	while (!line.empty()) {
 		char c = line[0];
 
 		// Literal
 		if (Sigma::isLiteralChar(c)) {
-			sigma->addItem(c);
+			sigma.addItem(c);
 
 			// Advance one item
 			line = line.substr(1);
@@ -35,7 +30,7 @@ shared_ptr<Sigma> Sigma::fromString(string line) {
 			// If both values were valid
 			if (msb + lsb != -2) {
 				char newItem = (char)((msb << 4) + lsb);
-				sigma->addItem(newItem);
+				sigma.addItem(newItem);
 
 				// Advance the string
 				line = line.substr(3);
@@ -144,11 +139,4 @@ ostream& operator<<(ostream& out, const Sigma& sigma) {
 	}
 
 	return out << "}";
-}
-
-ostream& operator<<(ostream& out, const shared_ptr<Sigma>& sigma) {
-	if (sigma == nullptr) {
-		return out << "<null sigma>";
-	}
-	return out << *sigma;
 }

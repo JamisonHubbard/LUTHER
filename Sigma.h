@@ -2,14 +2,13 @@
 #define SIGMA_H
 
 #include <string>  // std::string
-#include <memory>  // std::shared_ptr
 #include <map>     // std::map
 #include <set>     // std::set
 #include <ostream> // std::ostream
 
 class Sigma {
 public:
-	static std::shared_ptr<Sigma> fromString(std::string line);
+	static Sigma fromString(std::string line);
 	static std::string print(const char c);
 
 	// Printing Helpers
@@ -29,7 +28,6 @@ public:
 
 	// Printing stuff
 	friend std::ostream& operator<<(std::ostream& out, const Sigma& sigma);
-	friend std::ostream& operator<<(std::ostream& out, const std::shared_ptr<Sigma>& sigma);
 
 private:
 	// Maps elements in sigma to their indices

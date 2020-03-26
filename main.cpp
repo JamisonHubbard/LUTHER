@@ -1,9 +1,10 @@
-#include <memory>   // std::shared_ptr
 #include <iostream> // std::cout
 #include <fstream>  // std::ifstream
 #include <string>   // std::string
 #include <vector>   // std::vector
 #include <limits>   // std::numeric_limits
+#include <optional> // std::optional
+#include <cassert>
 
 #include "util.h"
 #include "Sigma.h"
@@ -14,22 +15,23 @@ using std::cout;
 using std::ifstream;
 using std::string;
 using std::vector;
+using std::optional;
 
-bool loadScannerDefinition(
-	char* fname,
-	shared_ptr<Sigma> sigma,
-	vector<shared_ptr<DFA>> tables
-);
+bool loadScannerDefinition(char* fname);
 
 int main(int argc, char** argv) {
 	//// Test stuff
 	cout << "Sigma Test:\n";
-	shared_ptr<Sigma> testSigma = Sigma::fromString("  x0ax20 x5C  x6fpqrx73   ");
+	Sigma testSigma = Sigma::fromString("  x0ax20 x5C  x6fpqrx73   ");
+
+	assert(testSigma.size() == 8, "Loaded sigma incorrectly.");
 	cout << testSigma << "\n";
 
 	cout << "\nDFA Test:\n";
-	shared_ptr<DFA> testTable = DFA::fromFile(testSigma, "example/noto.tt");
-	cout << testTable;
+	optional<DFA> testTable = DFA::fromFile(testSigma, "example/noto22.tt");
+	assert(testTable, "Unable to load DFA from file.");
+
+	cout << testTable.value();
 
 	//// Actual program stuff
 	// Check for wrong number of arguments
@@ -37,21 +39,14 @@ int main(int argc, char** argv) {
 		return 2;
 	}
 
-	shared_ptr<Sigma> sigma;
-	vector<shared_ptr<DFA>> tables;
-
-	if (!loadScannerDefinition(argv[1], sigma, tables)) {
+	if (!loadScannerDefinition(argv[1])) {
 		return 1;
 	}
 
 	return 0;
 }
 
-bool loadScannerDefinition(
-	char* fname,
-	shared_ptr<Sigma> sigma,
-	vector<shared_ptr<DFA>> dfas
-) {
+bool loadScannerDefinition(char* fname) {
 	// Load input file
 	ifstream inFile(fname, ifstream::in);
 	if (!inFile.good()) {
@@ -59,6 +54,7 @@ bool loadScannerDefinition(
 		return false;
 	}
 
+	Sigma sigma;
 	string line;
 	if (std::getline(inFile, line)) {
 		// Grab the alphabet from the first line

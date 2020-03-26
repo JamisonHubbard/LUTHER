@@ -32,9 +32,9 @@ namespace util {
 		// I'm not on the Visual Studio compiler and using
 		// that one instead.
 #ifdef _MSC_VER
-		return std::isblank(c);
+		return std::isblank(c) != 0;
 #else
-		return std::isblank(c, std::locale::classic());
+		return std::isblank(c, std::locale::classic()) != 0;
 #endif
 	}
 }

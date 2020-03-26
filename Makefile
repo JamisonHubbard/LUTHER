@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-Wall -std=c++14
+CXXFLAGS=-Wall -std=c++17
 DEPS=utils.h DFA.h Sigma.h
 OBJ=main.o DFA.o Sigma.o
 
