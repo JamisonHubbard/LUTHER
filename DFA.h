@@ -1,5 +1,4 @@
-#ifndef TRANSITION_TABLE_H
-#define TRANSITION_TABLE_H
+#pragma once
 
 #include <string>   // std::string, std::getline, std::isblank, std::stoi
 #include <map>      // std::map
@@ -44,8 +43,5 @@ private:
 	// Each state's acceptance value
 	std::map<size_t, bool> accepting;
 
-	// Reference to sigma
 	Sigma sigma;
 };
-
-#endif // TRANSITION_TABLE_H

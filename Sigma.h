@@ -1,5 +1,4 @@
-#ifndef SIGMA_H
-#define SIGMA_H
+#pragma once
 
 #include <string>  // std::string
 #include <map>     // std::map
@@ -37,11 +36,9 @@ private:
 	std::map<size_t, char> backwardIdMap;
 
 	// Since we know from the write-up that the characters will be in ascending ASCII order, we
-	// can use a set
+	// can use a set (it preserves this order)
 	std::set<char> sigma;
 
 	// I feel like this class shouldn't really be mutable, so this is private
 	void addItem(char item);
 };
-
-#endif // SIGMA_H

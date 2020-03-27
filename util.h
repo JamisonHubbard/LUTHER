@@ -1,5 +1,4 @@
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
 #include <vector>  // std::vector
 #include <sstream> // std::stringstream
@@ -38,5 +37,3 @@ namespace util {
 #endif
 	}
 }
-
-#endif // UTIL_H
