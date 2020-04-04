@@ -1,146 +1,137 @@
-#include <ostream>  // std::ostream
-#include <iomanip>  // std::setw, std::left
+/* 
+    Jamison Hubbard and Josh Dorsey
+    CSCI 498A - Compilers
+    Project LUTHER
+    March 2020
+    DFA.cpp
+*/
 
+using namespace std;
+
+#include <map>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include "DFA.h"
-#include "util.h"
 
-using std::string;
-using std::ifstream;
-using std::ostream;
-using std::vector;
-using std::map;
-using std::optional;
+// Constructor
+DFA::DFA(string filename, string tok) {
+    // open file
+    ifstream inFile("./dfas/" + filename);
+    if (!inFile) exit(2);
 
-optional<DFA> DFA::fromFile(const Sigma &sigma, const char* fname) {
-	ifstream file(fname, ifstream::in);
+    string line;
+    while (getline(inFile, line)) {
+        // correct for the last line being empty
+        if (line == "") break;
 
-	if (!file.good()) {
-		return std::nullopt;
-	}
+        string accepts;
+        int nodeID;
+        istringstream lineIn(line);
 
-	DFA dfa;
-	dfa.name = string(fname);
-	dfa.sigma = sigma;
+        // retrieve accepting state and node name
+        lineIn >> accepts;
+        lineIn >> nodeID;
 
-	string line;
-	bool readValidInput = false;
+        // load the remaining values into a vector as int
+        vector<int> columns;
+        string transString;
+        lineIn >> transString;
 
-	while (std::getline(file, line)) {
-		// First, split the line by whitespace
-		vector<string> split = util::split(line);
+        while (transString != "") {
+            int transInt;
 
-		// We need exactly sizeof(sigma)+2 items in the split
-		// <accepting> <state number> <transitions...>
-		if (split.size() != 2 + sigma.size()) continue;
+            // if the value is E, convert to -1
+            if (transString == "E") transInt = -1;
+            else transInt = stoi(transString);
 
-		readValidInput = true;
+            columns.push_back(transInt);
 
-		// What state are these transitions for?
-		size_t fromState = std::stoi(split[1]);
+            transString = "";
+            lineIn >> transString;
+        }
 
-		// Is the state accepting or not?
-		bool accept = split[0] == "+";
-		dfa.accepting[fromState] = accept;
+        // load values into table
+        ttable[nodeID] = columns;
 
-		// Go through this row, we start at 2 to skip
-		// both the +/- at the beginning and also the
-		// state number.
-		for (size_t i = 2; i < split.size(); i++) {
-			size_t sigmaIdx = i - 2;
-			if (split[i] != "E") {
-				size_t toState = std::stoi(split[i]);
+        if (accepts == "+") acceptingStates.push_back(nodeID);
+    }
 
-				// Add the transition
-				dfa.transitionTable[fromState][sigmaIdx] = toState;
-			}
-		}
-	}
+    inFile.close();
 
-	file.close();
-	
-	if (readValidInput) {
-		return dfa;
-	}
-	else {
-		return std::nullopt;
-	}
+    // set token value
+    token = tok;
+
+    // set data to empty
+    data = "";
 }
 
-size_t DFA::numRows() const {
-	return transitionTable.size();
+// Access Functions
+map<int, vector<int>> DFA::getTable() {return ttable;}
+vector<int> DFA::getAcceptingStates() {return acceptingStates;}
+string DFA::getToken() {return token;}
+string DFA::getData() {return data;}
+void DFA::setData(string d) {data = d;}
+
+// Other
+void DFA::print() {
+    map<int, vector<int>>::iterator mit = ttable.begin();
+    for (pair<int, vector<int>> row : ttable) {
+        // print accepting character
+        bool isAccepting = false;
+        for (int i = 0; i < acceptingStates.size(); ++i) {
+            if (acceptingStates[i] == row.first) isAccepting = true;
+        }
+
+        if (isAccepting) cout << "+ ";
+        else cout << "- ";
+
+        // print node ID
+        cout << to_string(row.first) << " ";
+
+        // print each column value, if it's -1 print E
+        for (int i = 0; i < row.second.size(); ++i) {
+            if (row.second[i] == -1) cout << "E ";
+            else cout << to_string(row.second[i]) << " ";
+        }
+
+        cout << endl;
+    }
+
+    cout << endl;
 }
 
-DFA::state_t DFA::getState() const {
-	return this->state;
-}
+int DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
+    // models transitions until the end of the
+    // phrase, or it can no longer model the phrase
+    
+    // returns 0 if it cannot model the phrase
+    // returns 1 if the phrase ends when the active node
+    // is not accepting
+    // returns 2 if the phrase ends when the active node
+    // is accepting
 
-DFA::state_t DFA::transition(char inputChar) {
-	// TODO
-	// This function performs a transition on this DFA, and changes its current state.
-	// This function is incomplete and needs to do bookkeeping about the last match
-	// and its position in the program source.
-	size_t inputIdx = sigma.indexToChar(inputChar);
+    istringstream inPhrase(phrase);
+    char c;
+    int currentNode = 0;
+    int nextNode;
 
-	map<size_t, statenum_t> transitionRow = transitionTable[stateNum];
+    while (inPhrase.get(c)) {
+        // access the table to find the next state
+        int indexOfC = alphabetIndex[c];
+        nextNode = ttable[currentNode][indexOfC];
 
-	if (transitionRow.find(inputIdx) != transitionRow.end()) {
-		stateNum = transitionRow[inputIdx];
-		state = accepting[stateNum];
-	}
-	else {
-		stateNum = 0;
-		state = accepting[stateNum];
-	}
+        // if no next state
+        if (nextNode == -1) return 0;
+    }
 
-	return state;
-}
+    // if next node is accepting
+    for (int i = 0; i < acceptingStates.size(); ++i) {
+        if (nextNode == acceptingStates[i]) return 2;
+    }
 
-
-ostream& operator<<(ostream& out, const DFA& dfa) {
-	using std::setw;
-	using std::streamsize;
-
-	// Save off old stream format flags so we can restore them
-	// at the end of the function
-	const std::ios_base::fmtflags flags(out.flags());
-
-	// Since the max size of an entry is approximately 3 (due to the
-	// alphabet notation in sigma), there's a lot of setw(4) a lot
-	// to make a nice grid.
-	const int colWidth = 4;
-
-	out << setw(0) << dfa.name << ":\n";
-
-	// Print sigma
-	out << string(colWidth * 2, ' '); // two empty columns
-	for (char c : dfa.sigma) {
-		out << std::left << setw(colWidth) << Sigma::print(c);
-	}
-	out << "\n";
-
-	auto ttable = dfa.transitionTable;
-	for (auto entry : ttable) {
-		size_t stateNum = entry.first;
-		map<size_t, DFA::statenum_t> transitions = entry.second;
-
-		// Print accepting state and state number
-		out << setw(colWidth) << (dfa.accepting.at(stateNum) ? "+" : "-");
-		out << setw(colWidth) << stateNum;
-
-		// Print transitions
-		for (size_t i = 0; i < dfa.sigma.size(); i++) {
-			if (transitions.find(i) != transitions.end()) {
-				out << setw(colWidth) << transitions[i];
-			}
-			else {
-				out << setw(colWidth) << "E";
-			}
-		}
-		out << "\n";
-	}
-
-	// Restore old format flags
-	out.flags(flags);
-
-	return out;
+    // if next node is not accepting
+    return 1;
 }

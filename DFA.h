@@ -1,47 +1,42 @@
-#pragma once
+/* 
+    Jamison Hubbard and Josh Dorsey
+    CSCI 498A - Compilers
+    Project LUTHER
+    March 2020
+    DFA.h
+*/
 
-#include <string>   // std::string, std::getline, std::isblank, std::stoi
-#include <map>      // std::map
-#include <vector>   // std::vector
-#include <fstream>  // std::ifstream
-#include <optional> // std::optional
+#ifndef DFA_H
+#define DFA_H
 
-#include "Sigma.h"
+using namespace std;
 
-class DFA {
+#include <map>
+#include <vector>
+#include <string>
+
+class DFA{
 public:
-	typedef size_t statenum_t;
-	typedef unsigned short state_t;
-	typedef std::map<statenum_t, std::map<size_t, statenum_t>> ttable_t;
+    // Constructor
+    DFA(string filename, string tok);
 
-	static std::optional<DFA> fromFile(const Sigma &sigma, const char* fname);
+    // Access Functions
+    map<int, vector<int>> getTable();
+    vector<int> getAcceptingStates();
+    string getToken();
+    string getData();
+    void setData(string d);
 
-	// The two possible DFA states
-	static const state_t WILL_NOT_MATCH = 0;
-	static const state_t MATCHING = 1;
+    // Other
+    void print(); // for testing
 
-	// Accessors
-	size_t numRows() const;
-	state_t getState() const;
-
-	// Parsing function(s)
-	state_t transition(char input);
-
-	// Printing stuff
-	friend std::ostream& operator<<(std::ostream& out, const DFA& dfa);
+    int stateMidParse(string phrase, map<char, int> alphabetIndex);
 
 private:
-	// Used for printing
-	std::string name;
-	// The current state number
-	statenum_t stateNum = 0;
-	// The current accepting state
-	state_t state = WILL_NOT_MATCH;
-
-	// The transition table
-	ttable_t transitionTable;
-	// Each state's acceptance value
-	std::map<size_t, bool> accepting;
-
-	Sigma sigma;
+    map<int, vector<int>> ttable;
+    vector<int> acceptingStates;
+    string token;
+    string data;
 };
+
+#endif /*DFA_H*/
