@@ -31,6 +31,7 @@ public:
     int hexValue(char c);
 
     void parseFile(string filename);
+    void outputParseData(string filename);
 
 private:
     vector<DFA> tokens;
@@ -38,7 +39,7 @@ private:
     map<char, string> alphabet; // saving hex codes
     map<char, int> alphabetIndex; // saving the alphabet order
 
-    vector<string> tokenList; // tokens for output
+    vector<size_t> tokenList; // tokens for output
     vector<string> dataList; // data for output
     vector<string> locationList; // locations for output
 };

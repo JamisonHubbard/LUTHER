@@ -106,7 +106,6 @@ int Scanner::processAlphabet(string line) {
         }
     }
 
-    // return size of alphabet
     return count;
 }
 void Scanner::print() {
@@ -149,70 +148,111 @@ int Scanner::hexValue(char c) {
 
 void Scanner::parseFile(string filename) {
     // open file
-    fstream inFile(filename);
+    fstream inFile("./sources/" + filename);
     if (!inFile) exit(2);
     bool fileEmpty = false;
 
     while (!fileEmpty) {
-        // vector stores the count of how many characters
-        // each dfa was able to tokenize
-        vector<int> charCount;
-
-        // map stores the state of each dfa for each
-        // successive addition of a new character
-        map<string, vector<int>> dfaStates;
+        // vector stores longest phrase accepted by a dfa
+        // and set vector size
+        vector<string> longestAcceptPhrases;
+        for (size_t i = 0; i < tokens.size(); ++i) {
+            longestAcceptPhrases.push_back("");
+        }
 
         // iterate through the file char by char
         char c;
         string phrase;
+
+        // check if eof
+        if (inFile.peek() == EOF) {
+            fileEmpty = true;
+        }
+
         while (inFile.get(c)) {
-            // check if eof
-            if (c == EOF) {
-                fileEmpty = true;
-                break;
-            }
 
             phrase += c;
 
             // iterate through the dfas and get their 
             // state given the cumulative parse phrase
             int validCount = 0;
-            vector<int> states;
+            vector<DFA::state_t> states;
             for (int i = 0; i < tokens.size(); ++i) {
-                int state = tokens[i].stateMidParse(phrase, alphabetIndex);
+                DFA::state_t state = tokens[i].stateMidParse(phrase, alphabetIndex);
                 states.push_back(state);
 
                 // count the number that are valid
-                if (state > 0) ++validCount;
+                if (state != DFA::INVALID) ++validCount;
             }
-            dfaStates.insert(pair<string, vector<int>>(phrase, states));
 
             // if none are valid, break b/c we've gone too far
             if (validCount == 0) break;
+
+            // if any are accepting, store phrase
+            for (size_t i = 0; i < states.size(); ++i) {
+                if (states[i] == DFA::ACCEPTING) {
+                    longestAcceptPhrases[i] = phrase;
+                }
+            }
         }
 
-        // respond to case where the file is empty
-        if (fileEmpty) {
-            
+        // check through the longest phrase accepted for each
+        // dfa and take the longest one, or the first one if a tie
+        string longest;
+        size_t indexOfDFA;
+        for (size_t i = 0; i < longestAcceptPhrases.size(); ++i) {
+            if (longestAcceptPhrases[i].size() > longest.size()) {
+                longest = longestAcceptPhrases[i];
+                indexOfDFA = i;
+            }
         }
 
-        // otherwise
+        // put back characters to match longest phrase
+        // simultaneously decrement location data
+        for (int i = phrase.length(); i > longest.length(); --i) {
+            char putBackSteakHouse = phrase[i-1];
+            phrase = phrase.substr(0, phrase.length()-1);
+            inFile.putback(putBackSteakHouse);
+        }
 
-        // remove the last char from phrase and put it back
-        char putBack = phrase[phrase.length()-1];
-        phrase = phrase.substr(0, phrase.length()-1);
-        inFile.putback(putBack);
+        // save index of matched DFA in tokens vector
+        tokenList.push_back(indexOfDFA);
 
-        // iterate through the dfa state records backwards
-        // the first dfa to be in an accepting state, or the
-        // top one if a tie, is the one selected
-        vector<string> lastAcceptingPhrase;
+        // save data, which is data provided or phrase if none
+        if (tokens[indexOfDFA].getData() == "") {
+            phrase = longestAcceptPhrases[indexOfDFA];
+            string newPhrase;
+            istringstream inPhrase(phrase);
+            char c2;
+            while (inPhrase.get(c2)) {
+                newPhrase += alphabet[c2];
+            }
 
-        map<string, vector<int>>::iterator mit = dfaStates.begin();
-        for (pair<string, vector<int>> stateRecords)
+            dataList.push_back(newPhrase);
+        }
+        else {
+            dataList.push_back(tokens[indexOfDFA].getData());
+        }
 
+        // save the location data
+        
     }
 
     inFile.close();
     
+}
+void Scanner::outputParseData(string filename) {
+    // open file to write to
+    ofstream outFile("./outputs/" + filename);
+    if (!outFile) exit(5);
+
+    // outputting information for each match
+    for (size_t i = 0; i < tokenList.size(); ++i) {
+        string token = tokens[tokenList[i]].getToken();
+        outFile << token << " ";
+        outFile << dataList[i] << " ";
+        outFile /*<< locationList[i] */<< " \n";
+    }
+
+    outFile.close();
 }

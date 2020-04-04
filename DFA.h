@@ -27,10 +27,16 @@ public:
     string getData();
     void setData(string d);
 
+    // Parse State Enums
+    typedef int state_t;
+	static const state_t INVALID = 0;
+	static const state_t VALID = 1;
+    static const state_t ACCEPTING = 2;
+
     // Other
     void print(); // for testing
 
-    int stateMidParse(string phrase, map<char, int> alphabetIndex);
+    state_t stateMidParse(string phrase, map<char, int> alphabetIndex);
 
 private:
     map<int, vector<int>> ttable;

@@ -103,17 +103,11 @@ void DFA::print() {
     cout << endl;
 }
 
-int DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
+DFA::state_t DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
     // models transitions until the end of the
     // phrase, or it can no longer model the phrase
-    
-    // returns 0 if it cannot model the phrase
-    // returns 1 if the phrase ends when the active node
-    // is not accepting
-    // returns 2 if the phrase ends when the active node
-    // is accepting
 
-    istringstream inPhrase(phrase);
+    stringstream inPhrase(phrase);
     char c;
     int currentNode = 0;
     int nextNode;
@@ -124,14 +118,15 @@ int DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
         nextNode = ttable[currentNode][indexOfC];
 
         // if no next state
-        if (nextNode == -1) return 0;
+        if (nextNode == -1) return DFA::INVALID;
+        currentNode = nextNode;
     }
 
     // if next node is accepting
     for (int i = 0; i < acceptingStates.size(); ++i) {
-        if (nextNode == acceptingStates[i]) return 2;
+        if (nextNode == acceptingStates[i]) return DFA::ACCEPTING;
     }
 
     // if next node is not accepting
-    return 1;
+    return DFA::VALID;
 }

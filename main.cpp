@@ -20,7 +20,8 @@ int main(int argc, char* argv[]) {
     string outputFile = argv[3];
 
     Scanner scan(scannerFile);
-    scan.print();
+    scan.parseFile(sourceFile);
+    scan.outputParseData(outputFile);
 
     return 0;
 }
