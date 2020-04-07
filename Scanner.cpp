@@ -14,6 +14,7 @@ using namespace std;
 #include <iostream>
 #include "DFA.h"
 #include "Scanner.h"
+#include "SourceFile.h"
 
 // Constructor
 
@@ -148,29 +149,27 @@ int Scanner::hexValue(char c) {
 
 void Scanner::parseFile(string filename) {
     // open file
-    fstream inFile("./sources/" + filename);
-    if (!inFile) exit(2);
+    SourceFile inFile("./sources/" + filename);
+    if (!inFile.file_open()) exit(2);
     bool fileEmpty = false;
 
     while (!fileEmpty) {
         // vector stores longest phrase accepted by a dfa
         // and set vector size
-        vector<string> longestAcceptPhrases;
-        for (size_t i = 0; i < tokens.size(); ++i) {
-            longestAcceptPhrases.push_back("");
-        }
+        vector<string> longestAcceptPhrases(tokens.size());
 
         // iterate through the file char by char
-        char c;
+        char c = 0;
         string phrase;
 
         // check if eof
-        if (inFile.peek() == EOF) {
+        if (inFile.empty()) {
             fileEmpty = true;
         }
 
-        while (inFile.get(c)) {
+        auto startPosition = inFile.position();
 
+        while (inFile.get(c)) {
             phrase += c;
 
             // iterate through the dfas and get their 
@@ -185,8 +184,11 @@ void Scanner::parseFile(string filename) {
                 if (state != DFA::INVALID) ++validCount;
             }
 
-            // if none are valid, break b/c we've gone too far
-            if (validCount == 0) break;
+            // if none are valid, back up one character and
+            // break b/c we've gone too far
+            if (validCount == 0) {
+                break;
+            }
 
             // if any are accepting, store phrase
             for (size_t i = 0; i < states.size(); ++i) {
@@ -208,12 +210,7 @@ void Scanner::parseFile(string filename) {
         }
 
         // put back characters to match longest phrase
-        // simultaneously decrement location data
-        for (int i = phrase.length(); i > longest.length(); --i) {
-            char putBackSteakHouse = phrase[i-1];
-            phrase = phrase.substr(0, phrase.length()-1);
-            inFile.putback(putBackSteakHouse);
-        }
+        inFile.put_back(phrase.substr(longest.size()));
 
         // save index of matched DFA in tokens vector
         tokenList.push_back(indexOfDFA);
@@ -234,12 +231,9 @@ void Scanner::parseFile(string filename) {
             dataList.push_back(tokens[indexOfDFA].getData());
         }
 
-        // save the location data
-        
+        // save location info
+        locationList.push_back(startPosition.str());
     }
-
-    inFile.close();
-    
 }
 void Scanner::outputParseData(string filename) {
     // open file to write to
@@ -251,7 +245,7 @@ void Scanner::outputParseData(string filename) {
         string token = tokens[tokenList[i]].getToken();
         outFile << token << " ";
         outFile << dataList[i] << " ";
-        outFile /*<< locationList[i] */<< " \n";
+        outFile << locationList[i] << " \n";
     }
 
     outFile.close();

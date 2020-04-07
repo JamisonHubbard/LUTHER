@@ -1,3 +1,10 @@
-luther/
+Debug/
+
 *.o
 *.exe
+LUTHER
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.swp

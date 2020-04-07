@@ -110,7 +110,7 @@ DFA::state_t DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
     stringstream inPhrase(phrase);
     char c;
     int currentNode = 0;
-    int nextNode;
+    int nextNode = currentNode;
 
     while (inPhrase.get(c)) {
         // access the table to find the next state
@@ -124,7 +124,7 @@ DFA::state_t DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
 
     // if next node is accepting
     for (int i = 0; i < acceptingStates.size(); ++i) {
-        if (nextNode == acceptingStates[i]) return DFA::ACCEPTING;
+        if (currentNode == acceptingStates[i]) return DFA::ACCEPTING;
     }
 
     // if next node is not accepting

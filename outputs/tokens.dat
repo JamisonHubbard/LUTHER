@@ -1,10 +1,10 @@
-pqrs pqrpqrpppqqqpprrrr  
-IGNORE x0a  
-twosmallwords rx6fpx20rx6fpx20  
-twosmallwords rx6fpx20x20x20rx6fpx20  
-whackamole x5cooox5cx20x5cooox5c  
-endsq x20x0apx0aqx20rx20x73x20rx0aqx0apx20q  
-IGNORE x20  
-whackamole x5cooox5cx20x5cooox5c  
-IGNORE x20  
-IGNORE   
+pqrs pqrpqrpppqqqpprrrr 1 1 
+IGNORE x0a 1 19 
+twosmallwords rx6fpx20rx6fpx20 2 1 
+twosmallwords rx6fpx20x20x20rx6fpx20 2 9 
+whackamole x5cooox5cx20x5cooox5c 2 19 
+endsq x20x0apx0aqx20rx20x73x20rx0aqx0apx20q 2 31 
+IGNORE x20 6 4 
+whackamole x5cooox5cx20x5cooox5c 6 5 
+IGNORE x20 6 15 
+IGNORE  6 16 

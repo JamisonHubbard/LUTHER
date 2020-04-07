@@ -6,12 +6,44 @@
     main.cpp
 */
 
+#include <string>
+#include <iostream>
+#include "Scanner.h"
+#include "SourceFile.h"
+
 using namespace std;
 
-#include <string>
-#include "Scanner.h"
-
 int main(int argc, char* argv[]) {
+    /*
+    SourceFile file("./sources/source.txt");
+
+    string parse = "";
+    // Read 20 characters from stream
+    int i = 20;
+    while (i) {
+        auto pos = file.position();
+        char got = file.get();
+        parse += got;
+        cout << "\'" << got << "\' (" << pos.line << ":" << pos.column << ")\n";
+        i--;
+    }
+
+    // Put some back
+    cout << "putting " << (parse.substr(10).size()) << " characters back.\n";
+    file.put_back(parse.substr(10));
+
+    // Read again
+    i = 20;
+    while (i) {
+        char got = file.get();
+        parse += got;
+        auto pos = file.position();
+        cout << "\'" << got << "\' (" << pos.line << ":" << pos.column << ")\n";
+        i--;
+    }
+
+    return 0;*/
+
     if (argc != 4) exit(1);
 
     // organizing filepaths
