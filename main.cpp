@@ -15,7 +15,10 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
     // We need 3 arguments + the program name
-    if (argc != 4) exit(1);
+    if (argc != 4) {
+        cout << "Wrong number of args\n";
+        exit(1);
+    }
 
     // organizing filepaths
     string scannerFile = argv[1];

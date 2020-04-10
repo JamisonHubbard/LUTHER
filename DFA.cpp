@@ -19,8 +19,11 @@ using namespace std;
 // Constructor
 DFA::DFA(string filename, string tok) {
     // open file
-    ifstream inFile("./dfas/" + filename);
-    if (!inFile) exit(2);
+    ifstream inFile(filename);
+    if (!inFile) {
+        cout << "Can't open " << filename << "\n";
+        exit(1);
+    }
 
     string line;
     while (getline(inFile, line)) {
@@ -75,34 +78,6 @@ string DFA::getToken() {return token;}
 string DFA::getData() {return data;}
 void DFA::setData(string d) {data = d;}
 
-// Other
-void DFA::print() {
-    map<int, vector<int>>::iterator mit = ttable.begin();
-    for (pair<int, vector<int>> row : ttable) {
-        // print accepting character
-        bool isAccepting = false;
-        for (int i = 0; i < acceptingStates.size(); ++i) {
-            if (acceptingStates[i] == row.first) isAccepting = true;
-        }
-
-        if (isAccepting) cout << "+ ";
-        else cout << "- ";
-
-        // print node ID
-        cout << to_string(row.first) << " ";
-
-        // print each column value, if it's -1 print E
-        for (int i = 0; i < row.second.size(); ++i) {
-            if (row.second[i] == -1) cout << "E ";
-            else cout << to_string(row.second[i]) << " ";
-        }
-
-        cout << endl;
-    }
-
-    cout << endl;
-}
-
 DFA::state_t DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
     // models transitions until the end of the
     // phrase, or it can no longer model the phrase
@@ -123,7 +98,7 @@ DFA::state_t DFA::stateMidParse(string phrase, map<char, int> alphabetIndex) {
     }
 
     // if next node is accepting
-    for (int i = 0; i < acceptingStates.size(); ++i) {
+    for (size_t i = 0; i < acceptingStates.size(); ++i) {
         if (currentNode == acceptingStates[i]) return DFA::ACCEPTING;
     }
 

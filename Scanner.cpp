@@ -20,14 +20,23 @@ using namespace std;
 
 Scanner::Scanner(string filename) {
     // open the file and get the alphabet definition
-    ifstream inFile("./scanners/" + filename);
-    if (!inFile) exit(2);
+    ifstream inFile(filename);
+    if (!inFile) {
+        cout << "Can't open scanner file\n";
+        exit(1);
+    }
 
     string alphabetLine;
     getline(inFile, alphabetLine);
 
     // get the alphabet size and process alphabet
     sigmaSize = processAlphabet(alphabetLine);
+
+    // check for empty file
+    if (sigmaSize == 0) {
+        cout << "Empty or improper scanner file\n";
+        exit(1);
+    }
 
     // process the lines giving dfa files
     string line;
@@ -109,30 +118,6 @@ int Scanner::processAlphabet(string line) {
 
     return count;
 }
-void Scanner::print() {
-    // print alphabet and it's size
-    cout << "Alphabet\n";
-    map<char, string>::iterator mit = alphabet.begin();
-    for (pair<char, string> character : alphabet) {
-        cout << character.second << "\t";
-    }
-    cout << endl;
-    for (pair<char, string> character : alphabet) {
-        if (!isspace(character.first)){
-            cout << string(1, character.first) << "\t";
-        } else {
-            cout << "N/A\t";
-        }
-    }
-    cout << "\nSize: " << to_string(sigmaSize) << "\n\n";
-
-    // print each DFA's token, transition table, and data
-    for (int i = 0; i < tokens.size(); ++i) {
-        cout << "Token: " << tokens[i].getToken() << endl;
-        cout << "Data: " << tokens[i].getData() << endl;
-        tokens[i].print();
-    }
-}
 int Scanner::hexValue(char c) {
 	c = (char) std::tolower(c);
 
@@ -149,9 +134,14 @@ int Scanner::hexValue(char c) {
 
 void Scanner::parseFile(string filename) {
     // open file
-    SourceFile inFile("./sources/" + filename);
-    if (!inFile.file_open()) exit(2);
+    SourceFile inFile(filename);
+    if (!inFile.file_open()) {
+        cout << "Can't open source file\n";
+        exit(1);
+    }
     bool fileEmpty = false;
+
+    SourceFile::Position startPosition;
 
     while (!fileEmpty) {
         // vector stores longest phrase accepted by a dfa
@@ -162,21 +152,23 @@ void Scanner::parseFile(string filename) {
         char c = 0;
         string phrase;
 
-        // check if eof
+        /*// check if eof
         if (inFile.empty()) {
             fileEmpty = true;
-        }
-
-        auto startPosition = inFile.position();
+        }*/
 
         while (inFile.get(c)) {
+            if(phrase.length() == 0) {
+                startPosition = inFile.prevPosition();
+            }
+
             phrase += c;
 
             // iterate through the dfas and get their 
             // state given the cumulative parse phrase
             int validCount = 0;
             vector<DFA::state_t> states;
-            for (int i = 0; i < tokens.size(); ++i) {
+            for (size_t i = 0; i < tokens.size(); ++i) {
                 DFA::state_t state = tokens[i].stateMidParse(phrase, alphabetIndex);
                 states.push_back(state);
 
@@ -209,6 +201,14 @@ void Scanner::parseFile(string filename) {
             }
         }
 
+        if (c == -1) {
+            if (longest == "") {
+                // we are done
+                break;
+            }
+            inFile.end();
+        }
+
         // put back characters to match longest phrase
         inFile.put_back(phrase.substr(longest.size()));
 
@@ -237,8 +237,11 @@ void Scanner::parseFile(string filename) {
 }
 void Scanner::outputParseData(string filename) {
     // open file to write to
-    ofstream outFile("./outputs/" + filename);
-    if (!outFile) exit(5);
+    ofstream outFile(filename);
+    if (!outFile) {
+        cout << "Can't write to " << filename << "\n";
+        exit(1);
+    }
 
     // outputting information for each match
     for (size_t i = 0; i < tokenList.size(); ++i) {

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <vector>
 
 class SourceFile {
@@ -18,12 +19,14 @@ public:
 			result += std::to_string(column);
 			return result;
 		}
+
 	} Position;
 
 public:
 	template<typename T>
 	SourceFile(T fname) : file(fname) {
 		posStack.push_back({ 1, 1 });
+		eofReached = false;
 	};
 	
 	~SourceFile() {
@@ -42,15 +45,23 @@ public:
 
 	Position put_back(const char& c);
 
+	void backup();
+
+	Position prevPosition();
+
 	/*
 		Returns the position of the next character that will be read
 	*/
 	Position position() const;
 
+	void end();
+
 private:
 	std::ifstream file;
 	std::vector<Position> posStack;
 	std::vector<char> lastChars;
+	bool eofReached;
+	std::vector<char> endOfFile;
 };
 
 #endif // SOURCE_FILE_H

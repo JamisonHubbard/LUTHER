@@ -33,9 +33,6 @@ public:
 	static const state_t VALID = 1;
     static const state_t ACCEPTING = 2;
 
-    // Other
-    void print(); // for testing
-
     state_t stateMidParse(string phrase, map<char, int> alphabetIndex);
 
 private:

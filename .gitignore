@@ -8,3 +8,5 @@ LUTHER
 *.vcxproj.filters
 *.vcxproj.user
 *.swp
+.vscode/*
+.gitignore

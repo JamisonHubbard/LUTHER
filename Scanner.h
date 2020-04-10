@@ -27,7 +27,6 @@ public:
 
     // Other
     int processAlphabet(string line);
-    void print(); // for testing
     int hexValue(char c);
 
     void parseFile(string filename);
