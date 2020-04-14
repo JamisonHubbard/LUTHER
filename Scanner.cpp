@@ -22,7 +22,7 @@ Scanner::Scanner(string filename) {
     // open the file and get the alphabet definition
     ifstream inFile(filename);
     if (!inFile) {
-        cout << "Can't open scanner file\n";
+        // cout << "Can't open scanner file\n";
         exit(1);
     }
 
@@ -158,6 +158,10 @@ void Scanner::parseFile(string filename) {
         }*/
 
         while (inFile.get(c)) {
+            if(alphabetIndex.find(c) == alphabetIndex.end()) {
+                exit(1);
+            }
+
             if(phrase.length() == 0) {
                 startPosition = inFile.prevPosition();
             }
