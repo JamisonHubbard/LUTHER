@@ -42,6 +42,10 @@ Scanner::Scanner(string filename) {
     string line;
     while (getline(inFile, line)) {
         istringstream lineIn(line);
+
+        // skip empty lines
+        if (line.empty()) continue;
+
         string dfaFile, token, data;
 
         // load the three possible inputs
